@@ -1,0 +1,62 @@
+
+.splash-container {
+  height: 100vh;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.8s ease-in-out;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1s ease-in forwards;
+}
+
+.fade-out {
+  opacity: 1;
+  animation: fadeOut 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+.splash-logo {
+  width: 80%;
+  max-width: 800px;
+}
+
+.splash-message {
+  margin-top: 1.5rem;
+  font-size: 1.2rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.spinner {
+  margin-top: 1rem;
+  width: 30px;
+  height: 30px;
+  border: 4px solid #ccc;
+  border-top-color: #f66;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

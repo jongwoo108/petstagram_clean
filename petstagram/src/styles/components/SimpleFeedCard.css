@@ -1,0 +1,134 @@
+.simple-feed-card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.simple-feed-image-wrapper {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.simple-feed-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.simple-feed-title {
+  padding: 0 10px 10px;
+  font-weight: bold;
+  font-size: 1rem;
+  font-family: 'GowunDodum', sans-serif;
+
+}
+
+/* ✅ 좋아요, 조회수, 삭제 아이콘을 한 줄에 정렬 */
+.simple-feed-stats {
+  display: flex;
+  justify-content: center; /* ✅ 가운데 정렬로 변경 */
+  align-items: center;
+  gap: 16px; /* 버튼 간 간격 */
+  padding: 0 10px 10px;
+}
+
+.simple-feed-stats span {
+  margin-right: 0.5rem;
+}
+
+/* ✅ 삭제 버튼만 남기고 hover 효과 추가 */
+.delete-button {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  /* margin-left: auto; */
+  transition: color 0.2s ease;
+}
+
+.delete-button:hover {
+  color: #e00;
+}
+
+/* ✅ 좋아요 버튼 전용 스타일 */
+/* .like-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+} */
+
+.like-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+  padding: 0;
+}
+
+.like-button:hover {
+  color: red; /* ❤️ 눌렀을 때 강조 원할 경우 */
+}
+
+/* ✅ 삭제 버튼 */
+.delete-button {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.delete-button:hover {
+  color: #e00;
+}
+
+.left-stats {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.right-actions {
+  margin-left: auto;
+}
+
+.like-count {
+  font-size: 0.75rem; /* ✅ 기존 텍스트보다 작게 */
+  color: rgba(0, 0, 0, 0.4); /* ✅ 흐리게 (회색 톤) */
+}
+
+/* ✅ 제거된 스타일 (더 이상 사용되지 않음)
+.simple-feed-actions {
+  padding: 10px;
+  font-size: 20px;
+}
+
+.simple-feed-actions button {
+  background: none;
+  border: none;
+  color: red;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+*/

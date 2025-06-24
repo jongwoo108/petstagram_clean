@@ -1,0 +1,67 @@
+/* src/styles/pages/AuthPage.css */
+.auth-container {
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 40px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-form label {
+  display: block;
+  margin-bottom: 16px;
+  font-weight: bold;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 6px;
+  box-sizing: border-box; /* ✅ padding 포함 계산 */
+}
+
+.auth-form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4e8cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 16px;
+  box-sizing: border-box; /* ✅ 라인 정렬 맞춤 */
+}
+
+.auth-form button:hover {
+  background-color: #3679e0;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #4e8cff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 16px;
+}
