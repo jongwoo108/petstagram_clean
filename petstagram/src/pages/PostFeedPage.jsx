@@ -5,7 +5,7 @@ import { categoryMap } from "../constants/categoryMap";
 import "../styles/pages/PostFeedPage.css";
 import api from "../api/api";
 
-const PostFeedPage = ({ setFeeds }) => {
+const PostFeedPage = () => {
   const [images, setImages] = useState([]);
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
@@ -40,20 +40,16 @@ const PostFeedPage = ({ setFeeds }) => {
     formData.append("category", category);
     formData.append("tags", JSON.stringify(tags.split(',').map(tag => tag.trim()).filter(Boolean)));
     try {
-      const res = await api.post(`/feeds/`, formData, {
+      await api.post(`/feeds/`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      setFeeds(prev => [res.data, ...prev]);
       setImages([]);
       setSubject("");
       setContent("");
       setTags("");
       setCategory(1);
       setToast("피드가 성공적으로 등록되었습니다!");
-      setTimeout(async () => {
-        if (typeof window.fetchFeeds === 'function') {
-          await window.fetchFeeds();
-        }
+      setTimeout(() => {
         navigate("/myfeednet");
       }, 1200);
     } catch (err) {

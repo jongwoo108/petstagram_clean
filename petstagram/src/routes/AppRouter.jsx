@@ -29,12 +29,12 @@ import SignupPage from "../pages/SignupPage";
 function AppRouter({ feeds, setFeeds, fetchFeeds }) {
   return (
     <Routes>
-      <Route path="/" element={<MainPage feeds={feeds} />} />
+      <Route path="/" element={<MainPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-      <Route path="/main" element={<MainPage feeds={feeds} />} />
-      <Route path="/post" element={<PostFeedPage setFeeds={setFeeds} />} />
-      <Route path="/myfeednet" element={<MyFeedNetPage feeds={feeds} fetchFeeds={fetchFeeds} />} />
+      <Route path="/main" element={<MainPage />} />
+      <Route path="/post" element={<PostFeedPage />} />
+      <Route path="/myfeednet" element={<MyFeedNetPage />} />
     </Routes>
   );
 }

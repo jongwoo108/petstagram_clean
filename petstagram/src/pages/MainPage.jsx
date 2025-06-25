@@ -5,6 +5,7 @@ import '../styles/pages/MainPage.css';
 import logo from '../assets/main_logo.png';
 import { categoryMap } from '../constants/categoryMap';
 import defaultProfilePic from '../assets/default.png';
+import axios from 'axios';
 
 // 모달 컴포넌트
 const Modal = ({ feed, onClose }) => {
@@ -46,8 +47,12 @@ function getFeedTypeByRatio(ratio) {
   return '1x1';
 }
 
-const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
+const MainPage = () => {
   const navigate = useNavigate();
+  const [feeds, setFeeds] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedFeed, setSelectedFeed] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +61,63 @@ const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
   const myNickname = sessionStorage.getItem('nickname');
   const [typedFeeds, setTypedFeeds] = useState([]);
 
+  // 무한스크롤용 피드 불러오기 (page를 명시적으로 받음)
+  const fetchMoreFeeds = useCallback(async (targetPage = 1, isInit = false) => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const res = await axios.get(import.meta.env.VITE_API_URL + '/feeds/', {
+        params: {
+          page: targetPage,
+          page_size: 10,
+          username: myNickname,
+        },
+      });
+      if (res.data.length < 10) setHasMore(false);
+      setFeeds(prev => {
+        const newFeeds = isInit ? res.data : [...prev, ...res.data];
+        // id 기준 중복 제거
+        const unique = [];
+        const seen = new Set();
+        for (const f of newFeeds) {
+          if (!seen.has(f.id)) {
+            unique.push(f);
+            seen.add(f.id);
+          }
+        }
+        return unique;
+      });
+      setPage(targetPage + 1);
+    } catch (err) {
+      alert('피드 불러오기 실패');
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [hasMore, loading, myNickname]);
+
+  // 카테고리/검색 변경 시 feeds/page/hasMore 초기화 후 첫 페이지만 요청
+  useEffect(() => {
+    setFeeds([]);
+    setPage(1);
+    setHasMore(true);
+    setLoading(false);
+    fetchMoreFeeds(1, true);
+    // eslint-disable-next-line
+  }, [selectedCategory, searchQuery]);
+
+  // Intersection Observer로 마지막 카드 감지 (항상 최신 page로 요청)
+  const lastFeedRef = useCallback(node => {
+    if (loading || !hasMore) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new window.IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && !loading) {
+        fetchMoreFeeds(page, false);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore, fetchMoreFeeds, page]);
+
   // 내 피드 제외 + 카테고리 필터링
   const filteredFeeds = selectedCategory === null
     ? feeds.filter(feed => feed.username !== myNickname)
@@ -63,6 +125,11 @@ const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
 
   // 이미지 비율에 따라 타입 선정
   useEffect(() => {
+    let isActive = true;
+    if (filteredFeeds.length === 0) {
+      setTypedFeeds([]);
+      return;
+    }
     const assignTypes = async () => {
       const results = await Promise.all(filteredFeeds.map(async (feed) => {
         const images = Array.isArray(feed.images) ? feed.images : [];
@@ -81,26 +148,11 @@ const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
           img.src = imageUrl;
         });
       }));
-      setTypedFeeds(results);
+      if (isActive) setTypedFeeds(results);
     };
     assignTypes();
+    return () => { isActive = false; };
   }, [filteredFeeds]);
-
-  // 타입별로 피드 큐 생성
-  const feedsByType = { '1x1': [], '1x2': [], '2x2': [] };
-  typedFeeds.forEach(feed => {
-    const t = feed.grid_type || '1x1';
-    feedsByType[t].push(feed);
-  });
-
-  // 그리드에 타입이 맞는 피드만 배치, 없으면 그 타입의 빈 칸(placeholder)
-  const gridFeeds = GRID_LAYOUT.map((cell, idx) => {
-    if (feedsByType[cell.type] && feedsByType[cell.type].length > 0) {
-      return { ...feedsByType[cell.type].shift(), grid_type: cell.type };
-    }
-    // 타입이 맞는 빈 칸(placeholder)로 채움
-    return { id: `empty-${idx}`, isPlaceholder: true, grid_type: cell.type };
-  });
 
   const handleCardClick = (feed) => setSelectedFeed(feed);
   const closeModal = () => setSelectedFeed(null);
@@ -133,6 +185,13 @@ const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
       }
       const data = await res.json();
       if (res.ok) {
+        // feeds의 해당 피드도 업데이트
+        setFeeds(prev => prev.map(f =>
+          f.id === feed.id
+            ? { ...f, is_liked: !isLiked, likes: data.likes }
+            : f
+        ));
+        // typedFeeds도 즉시 반영 (UX 개선)
         setTypedFeeds(prev => prev.map(f =>
           f.id === feed.id
             ? { ...f, is_liked: !isLiked, likes: data.likes }
@@ -145,6 +204,10 @@ const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
       alert('네트워크 오류');
     }
   };
+
+  // 마지막 줄 placeholder 개수 계산
+  const remainder = typedFeeds.length % 3;
+  const placeholders = remainder === 0 ? 0 : 3 - remainder;
 
   return (
     <div className="main-feed-wrapper">
@@ -160,7 +223,7 @@ const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
           내 피드 보기
         </button>
       </div>
-      <h2>🐾 전체 피드 (레이아웃 테스트)</h2>
+      <h2>🐾 반려동물 기록 일지</h2>
       <div className="search-bar-container">
         <input
           type="text"
@@ -184,25 +247,31 @@ const MainPage = ({ feeds, setFeeds, fetchFeeds }) => {
           </button>
         ))}
       </div>
-      {/* Feed Grid */}
+      {/* Feed Grid - 동적 렌더링 */}
       <div className="main-feed-grid">
-        {gridFeeds.map((feed, idx) =>
-          !feed.isPlaceholder ? (
-            <MainFeedCard
-              key={feed.id}
-              feed={feed}
-              gridType={feed.grid_type}
-              isLiked={feed.is_liked}
-              likeCount={feed.likes}
-              onToggleLike={handleToggleLike}
-              onCardClick={handleCardClick}
-            />
-          ) : (
-            <div key={feed.id} className={`main-feed-card layout-type-${feed.grid_type}`} style={{ background: '#fff', borderRadius: '16px', minHeight: '150px' }} />
-          )
-        )}
+        {typedFeeds.map((feed, idx) => (
+          <MainFeedCard
+            key={feed.id}
+            feed={feed}
+            gridType={feed.grid_type}
+            isLiked={feed.is_liked}
+            likeCount={feed.likes}
+            onToggleLike={handleToggleLike}
+            onCardClick={handleCardClick}
+            ref={idx === typedFeeds.length - 1 ? lastFeedRef : null}
+          />
+        ))}
+        {[...Array(placeholders)].map((_, idx) => (
+          <div key={`ph-${idx}`} className="main-feed-card placeholder" style={{ background: 'transparent', boxShadow: 'none' }} />
+        ))}
       </div>
-      {feeds.length === 0 && <div className="loading-indicator">피드가 없습니다.</div>}
+      {loading && <div className="loading-indicator">로딩 중...</div>}
+      {!hasMore && typedFeeds.length === 0 && <div className="loading-indicator">피드가 없습니다.</div>}
+      {!hasMore && typedFeeds.length > 0 && (
+        <div className="end-indicator" style={{ textAlign: 'center', color: '#888', margin: '32px 0', fontSize: '1.1rem' }}>
+          모든 피드를 다 보셨습니다 🐾
+        </div>
+      )}
       <Modal feed={selectedFeed} onClose={closeModal} />
     </div>
   );
