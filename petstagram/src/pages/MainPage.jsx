@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainFeedCard from '../components/MainFeedCard';
 import '../styles/pages/MainPage.css';
@@ -61,50 +61,40 @@ const MainPage = () => {
   const myNickname = sessionStorage.getItem('nickname');
   const [typedFeeds, setTypedFeeds] = useState([]);
 
-  // 무한스크롤용 피드 불러오기 (page를 명시적으로 받음)
-  const fetchMoreFeeds = useCallback(async (targetPage = 1, isInit = false) => {
-    if (loading || !hasMore) return;
-    setLoading(true);
-    try {
-      const res = await axios.get(import.meta.env.VITE_API_URL + '/feeds/', {
-        params: {
-          page: targetPage,
-          page_size: 10,
-          username: myNickname,
-        },
-      });
-      if (res.data.length < 10) setHasMore(false);
-      setFeeds(prev => {
-        const newFeeds = isInit ? res.data : [...prev, ...res.data];
-        // id 기준 중복 제거
-        const unique = [];
-        const seen = new Set();
-        for (const f of newFeeds) {
-          if (!seen.has(f.id)) {
-            unique.push(f);
-            seen.add(f.id);
-          }
-        }
-        return unique;
-      });
-      setPage(targetPage + 1);
-    } catch (err) {
-      alert('피드 불러오기 실패');
-      setHasMore(false);
-    } finally {
-      setLoading(false);
-    }
-  }, [hasMore, loading, myNickname]);
-
-  // 카테고리/검색 변경 시 feeds/page/hasMore 초기화 후 첫 페이지만 요청
+  // 1. selectedCategory, searchQuery가 바뀔 때 page만 1로 초기화 (page가 1이 아닐 때만, setFeeds 등은 호출하지 않음)
   useEffect(() => {
-    setFeeds([]);
-    setPage(1);
-    setHasMore(true);
-    setLoading(false);
-    fetchMoreFeeds(1, true);
-    // eslint-disable-next-line
+    if (page !== 1) {
+      setPage(1);
+    }
+    // page가 1이면 아무것도 하지 않음
   }, [selectedCategory, searchQuery]);
+
+  // 2. page가 바뀔 때만 fetchData 실행 (setFeeds, setHasMore, setLoading 등은 여기서만)
+  useEffect(() => {
+    let ignore = false;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(import.meta.env.VITE_API_URL + '/feeds/', {
+          params: {
+            page,
+            page_size: 10,
+            username: myNickname,
+          },
+        });
+        if (!ignore) {
+          if (res.data.length < 10) setHasMore(false);
+          setFeeds(prev => (page === 1 ? res.data : [...prev, ...res.data]));
+        }
+      } catch (err) {
+        if (!ignore) setHasMore(false);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => { ignore = true; };
+  }, [page, myNickname]);
 
   // Intersection Observer로 마지막 카드 감지 (항상 최신 page로 요청)
   const lastFeedRef = useCallback(node => {
@@ -112,16 +102,24 @@ const MainPage = () => {
     if (observer.current) observer.current.disconnect();
     observer.current = new window.IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !loading) {
-        fetchMoreFeeds(page, false);
+        setPage(prev => prev + 1);
       }
     });
     if (node) observer.current.observe(node);
-  }, [loading, hasMore, fetchMoreFeeds, page]);
+  }, [loading, hasMore]);
 
-  // 내 피드 제외 + 카테고리 필터링
-  const filteredFeeds = selectedCategory === null
-    ? feeds.filter(feed => feed.username !== myNickname)
-    : feeds.filter(feed => feed.category === selectedCategory && feed.username !== myNickname);
+  // 내 피드 제외 + 카테고리 필터링 (타입 강제 변환, useMemo로 메모이제이션)
+  const filteredFeeds = useMemo(() => {
+    return selectedCategory === null
+      ? feeds.filter(feed => feed.username !== myNickname)
+      : feeds.filter(feed => Number(feed.category) === Number(selectedCategory) && feed.username !== myNickname);
+  }, [feeds, selectedCategory, myNickname]);
+
+  console.log(
+    'category:', selectedCategory,
+    'feeds:', feeds.map(f => f.category),
+    'filteredFeeds:', filteredFeeds.map(f => f.category)
+  );
 
   // 이미지 비율에 따라 타입 선정
   useEffect(() => {
