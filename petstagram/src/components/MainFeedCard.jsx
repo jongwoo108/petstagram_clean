@@ -4,7 +4,7 @@ import defaultProfilePic from '../assets/default.png';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
-const MainFeedCard = React.forwardRef(({ feed, onCardClick, isLiked, likeCount, onToggleLike }, ref) => {
+const MainFeedCard = React.forwardRef(({ feed, feedIndex, onCardClick, isLiked, likeCount, onToggleLike }, ref) => {
   const [modalOpen, setModalOpen] = useState(false);
   const initialLayout = feed?.layout_type || 3;
   const [dynamicLayout, setDynamicLayout] = useState(initialLayout);
@@ -58,10 +58,20 @@ const MainFeedCard = React.forwardRef(({ feed, onCardClick, isLiked, likeCount, 
     objectFit = 'contain';
   }
 
+  // 2x2 타입 카드의 동적 배치를 위한 클래스 추가
+  const getPositionClass = () => {
+    if (feed.grid_type === '2x2') {
+      // 2x2 타입 카드를 인덱스 기반으로 교대로 배치
+      const position = feedIndex % 2 === 0 ? 'position-left' : 'position-right';
+      return position;
+    }
+    return '';
+  };
+
   return (
     <div
       ref={ref}
-      className={`main-feed-card layout-type-${feed.grid_type || '1x1'}`}
+      className={`main-feed-card layout-type-${feed.grid_type || '1x1'} ${getPositionClass()}`}
       onClick={() => onCardClick ? onCardClick(feed) : null}
     >
       {imageUrl ? (

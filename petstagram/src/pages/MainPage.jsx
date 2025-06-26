@@ -265,6 +265,7 @@ const MainPage = () => {
             key={feed.id}
             feed={feed}
             gridType={feed.grid_type}
+            feedIndex={idx}
             isLiked={feed.is_liked}
             likeCount={feed.likes}
             onToggleLike={handleToggleLike}
