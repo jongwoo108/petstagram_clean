@@ -256,12 +256,12 @@
   object-fit: cover;
   object-position: center center;
   display: block;
-  margin: 0 auto;
+  margin: 0 auto 2rem auto;
   background: #f8f8f8;
 }
 
 .modal-content-wrapper {
-  padding: 0 3rem; /* 좌우 여백 1.5rem (원하는 만큼 조절) */
+  padding: 0 3rem 2rem 3rem;
 }
 
 .feed-title {

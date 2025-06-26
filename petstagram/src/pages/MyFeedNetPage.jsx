@@ -245,7 +245,7 @@ const MyFeedNetPage = () => {
           <section className="profile-section">
             <img src={profile.profile_image || defaultProfile} alt="프로필" className="profile-img" />
             <div className="profile-info">
-              <h2>{profile.username}</h2>
+              <p className="pet-name gowun-font"><span className="label">닉네임:</span> {profile.username}</p>
               <p className="pet-name gowun-font"><span className="label">반려동물 이름:</span> {profile.pet_name || '미설정'} 🐶 ♂️</p>
               <p className="bio gowun-font">{profile.bio || '소개글이 없습니다.'}</p>
               <button onClick={() => {
