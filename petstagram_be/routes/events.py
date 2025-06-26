@@ -47,12 +47,20 @@ def get_feeds(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=50),
-    username: Optional[str] = None
+    username: Optional[str] = None,
+    category: Optional[int] = Query(None, description="카테고리 필터 (선택사항)")
 ):
     offset = (page - 1) * page_size
     
-    # User 정보와 함께 Feed를 가져오기 위해 join 사용
-    feeds_with_users = db.query(Feed, User).join(User, Feed.username == User.username).order_by(Feed.id.desc()).offset(offset).limit(page_size).all()
+    # 쿼리 빌더 시작
+    query = db.query(Feed, User).join(User, Feed.username == User.username)
+    
+    # 카테고리 필터 적용
+    if category is not None:
+        query = query.filter(Feed.category == category)
+    
+    # 최종 쿼리 실행
+    feeds_with_users = query.order_by(Feed.id.desc()).offset(offset).limit(page_size).all()
     
     results = []
     for feed, user in feeds_with_users:

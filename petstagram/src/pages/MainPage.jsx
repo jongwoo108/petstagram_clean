@@ -10,22 +10,37 @@ import axios from 'axios';
 // 모달 컴포넌트
 const Modal = ({ feed, onClose }) => {
   if (!feed) return null;
+  
+  // 이미지 URL 처리 (마이피드넷 페이지와 동일한 로직)
+  const images = Array.isArray(feed.images) ? feed.images : [];
+  let imageUrl = images[0];
+  
+  // API URL 조합 (상대 경로인 경우)
+  if (imageUrl && !imageUrl.startsWith('http')) {
+    imageUrl = import.meta.env.VITE_API_URL + imageUrl;
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-button" onClick={onClose}>
-          &times;
-        </button>
-        <div
-          className="modal-image"
-          style={{
-            background: `linear-gradient(to top, #d299c2, #fef9d7)`,
-            height: '300px',
-          }}
-        ></div>
-        <div className="modal-text-content">
-          <h2>{feed.title}</h2>
-          <p>{feed.content}</p>
+      <div className="modal-detail" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close-btn" onClick={onClose}>✕</button>
+        
+        {/* 실제 이미지 렌더링 */}
+        {imageUrl ? (
+          <img src={imageUrl} alt="상세 이미지" className="modal-image" />
+        ) : (
+          <div
+            className="modal-image"
+            style={{
+              background: `linear-gradient(to top, #d299c2, #fef9d7)`,
+              height: '70vh',
+            }}
+          ></div>
+        )}
+        
+        <div className="modal-content-wrapper">
+          <h3>{feed.subject || feed.title || '제목 없음'}</h3>
+          <p>{feed.content || '내용이 없습니다.'}</p>
         </div>
       </div>
     </div>
@@ -61,12 +76,11 @@ const MainPage = () => {
   const myNickname = sessionStorage.getItem('nickname');
   const [typedFeeds, setTypedFeeds] = useState([]);
 
-  // 1. selectedCategory, searchQuery가 바뀔 때 page만 1로 초기화 (page가 1이 아닐 때만, setFeeds 등은 호출하지 않음)
+  // 1. selectedCategory, searchQuery가 바뀔 때 상태 초기화
   useEffect(() => {
-    if (page !== 1) {
-      setPage(1);
-    }
-    // page가 1이면 아무것도 하지 않음
+    setPage(1);
+    setHasMore(true);
+    setFeeds([]); // 카테고리 변경 시 기존 데이터 초기화 (서버 필터링이므로)
   }, [selectedCategory, searchQuery]);
 
   // 2. page가 바뀔 때만 fetchData 실행 (setFeeds, setHasMore, setLoading 등은 여기서만)
@@ -80,6 +94,7 @@ const MainPage = () => {
             page,
             page_size: 10,
             username: myNickname,
+            ...(selectedCategory !== null && { category: selectedCategory })
           },
         });
         if (!ignore) {
@@ -94,7 +109,7 @@ const MainPage = () => {
     };
     fetchData();
     return () => { ignore = true; };
-  }, [page, myNickname]);
+  }, [page, myNickname, selectedCategory]);
 
   // Intersection Observer로 마지막 카드 감지 (항상 최신 page로 요청)
   const lastFeedRef = useCallback(node => {
@@ -108,12 +123,10 @@ const MainPage = () => {
     if (node) observer.current.observe(node);
   }, [loading, hasMore]);
 
-  // 내 피드 제외 + 카테고리 필터링 (타입 강제 변환, useMemo로 메모이제이션)
+  // 내 피드 제외 (서버에서 이미 카테고리 필터링됨)
   const filteredFeeds = useMemo(() => {
-    return selectedCategory === null
-      ? feeds.filter(feed => feed.username !== myNickname)
-      : feeds.filter(feed => Number(feed.category) === Number(selectedCategory) && feed.username !== myNickname);
-  }, [feeds, selectedCategory, myNickname]);
+    return feeds.filter(feed => feed.username !== myNickname);
+  }, [feeds, myNickname]);
 
   console.log(
     'category:', selectedCategory,
