@@ -3,7 +3,7 @@ name: FastAPI ECR Deployment
 on:
   push:
     branches:
-      - main
+      - main  # main 브랜치에 푸시될 때만 실행
 
 permissions:
   id-token: write
@@ -11,28 +11,26 @@ permissions:
 
 jobs:
   build-and-push:
+    name: Build & Push FastAPI to ECR
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::348823728620:role/GitHubActionsECRPushRole
           aws-region: ap-northeast-2
 
       - name: Log in to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and push Docker image to ECR
-        env:
-          ECR_REGISTRY: 348823728620.dkr.ecr.ap-northeast-2.amazonaws.com
-          ECR_REPOSITORY: petstagram-fastapi
-          IMAGE_TAG: latest
-        run: |
-          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker build -t $IMAGE_URI -f petstagram_be/Dockerfile petstagram_be
-          docker push $IMAGE_URI
+        uses: docker/build-push-action@v4
+        with:
+          context: petstagram_be
+          file: petstagram_be/Dockerfile
+          push: true
+          tags: 348823728620.dkr.ecr.ap-northeast-2.amazonaws.com/petstagram-fastapi:latest
