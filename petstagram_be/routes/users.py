@@ -7,11 +7,12 @@ from schemas.users import UserCreate, UserRead, UserLogin, ProfileRead, ProfileU
 from passlib.context import CryptContext
 from typing import Optional
 import os
+from config import BASE_URL
 
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-BASE_URL = "http://127.0.0.1:8000"
+
 UPLOAD_DIR = "uploaded_images"
 
 def get_db():

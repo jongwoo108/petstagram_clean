@@ -7,10 +7,10 @@ from schemas.events import FeedCreate, FeedRead, FeedUpdate
 from typing import List, Optional
 import json
 import os
+from config import BASE_URL
 
 router = APIRouter()
 
-BASE_URL = "http://127.0.0.1:8000"
 UPLOAD_DIR = "uploaded_images"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
