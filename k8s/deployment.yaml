@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+  labels:
+    app: fastapi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      serviceAccountName: s3-access-sa
+      containers:
+        - name: fastapi
+          image: 348823728620.dkr.ecr.ap-northeast-2.amazonaws.com/petstagram-fastapi:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: fastapi-env-secret
