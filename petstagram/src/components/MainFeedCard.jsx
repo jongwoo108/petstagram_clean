@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/components/MainFeedCard.css';
 import defaultProfilePic from '../assets/default.png';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API_URL = import.meta.env.VITE_API_URL 
 
 const MainFeedCard = React.forwardRef(({ feed, feedIndex, onCardClick, isLiked, likeCount, onToggleLike }, ref) => {
   const [modalOpen, setModalOpen] = useState(false);

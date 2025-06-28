@@ -180,7 +180,7 @@ const MainPage = () => {
     }
     const username = sessionStorage.getItem('nickname');
     const isLiked = feed.is_liked || false;
-    const url = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/feeds/${feed.id}/like`;
+    const url = `${import.meta.env.VITE_API_URL}/feeds/${feed.id}/like`;
     try {
       let res;
       if (!isLiked) {
